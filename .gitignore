@@ -1,0 +1,8 @@
+node_modules/
+build/
+dist/
+.env
+*.db
+*.sqlite
+strix_runs/
+.DS_Store

@@ -1,0 +1,65 @@
+name: Strix Security Scan (Enhanced)
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 4 * * 1'
+
+jobs:
+  quick-scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Strix
+        run: curl -sSL https://strix.ai/install | bash
+
+      - name: Run Quick Security Scan
+        id: scan
+        env:
+          STRIX_LLM: ${{ secrets.STRIX_LLM }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_API_BASE: ${{ secrets.LLM_API_BASE }}
+        run: strix -n -t ./ --scan-mode quick --run-name quick-report
+
+      - name: Upload Quick Scan Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: strix-quick-results
+          path: strix_runs/quick-report/
+
+  deep-scan:
+    if: github.ref == 'refs/heads/main' || github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Strix
+        run: curl -sSL https://strix.ai/install | bash
+
+      - name: Run Deep Security Scan
+        id: deep
+        env:
+          STRIX_LLM: ${{ secrets.STRIX_LLM }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_API_BASE: ${{ secrets.LLM_API_BASE }}
+        run: strix -n -t ./ --scan-mode deep --run-name deep-report
+
+      - name: Upload Deep Scan Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: strix-deep-results-${{ github.run_id }}
+          path: strix_runs/deep-report/
+          retention-days: 90

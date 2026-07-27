@@ -1,0 +1,12 @@
+{
+  "name": "cms-strix-demo",
+  "version": "1.0.0",
+  "description": "Full-stack CMS demo with Strix security scanning",
+  "private": true,
+  "scripts": {
+    "install:all": "cd backend && npm install && cd ../frontend && npm install",
+    "dev:backend": "cd backend && node server.js",
+    "dev:frontend": "cd frontend && npx react-scripts start",
+    "build:frontend": "cd frontend && npx react-scripts build"
+  }
+}
