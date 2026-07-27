@@ -1,4 +1,4 @@
-name: Strix Security Scan (Enhanced)
+name: Strix Security Scan
 
 on:
   pull_request:
@@ -26,14 +26,14 @@ jobs:
           STRIX_LLM: ${{ secrets.STRIX_LLM }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           LLM_API_BASE: ${{ secrets.LLM_API_BASE }}
-        run: strix -n --mount ./ -m quick
+        run: strix -n -t ./ --scan-mode quick
 
       - name: Upload Quick Scan Results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: strix-quick-results
-          path: strix_runs/quick-report/
+          path: strix_runs/
 
   deep-scan:
     if: github.ref == 'refs/heads/main' || github.event_name == 'schedule'
@@ -54,12 +54,12 @@ jobs:
           STRIX_LLM: ${{ secrets.STRIX_LLM }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           LLM_API_BASE: ${{ secrets.LLM_API_BASE }}
-        run: strix -n --mount ./ -m deep
+        run: strix -n -t ./ --scan-mode deep
 
       - name: Upload Deep Scan Results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: strix-deep-results-${{ github.run_id }}
-          path: strix_runs/deep-report/
+          path: strix_runs/
           retention-days: 90
