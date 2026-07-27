@@ -26,7 +26,7 @@ jobs:
           STRIX_LLM: ${{ secrets.STRIX_LLM }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           LLM_API_BASE: ${{ secrets.LLM_API_BASE }}
-        run: strix -n -t ./ --scan-mode quick --run-name quick-report
+        run: strix -n --mount ./ -m quick
 
       - name: Upload Quick Scan Results
         if: always()
@@ -54,7 +54,7 @@ jobs:
           STRIX_LLM: ${{ secrets.STRIX_LLM }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
           LLM_API_BASE: ${{ secrets.LLM_API_BASE }}
-        run: strix -n -t ./ --scan-mode deep --run-name deep-report
+        run: strix -n --mount ./ -m deep
 
       - name: Upload Deep Scan Results
         if: always()
