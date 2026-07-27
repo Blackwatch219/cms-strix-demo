@@ -12,13 +12,144 @@ permissions:
   contents: read
 
 jobs:
-  # ── Strix Quick Scan (PR only) ──
+  # ═══════════════════════════════════════════════════════════
+  # CodeQL — static analysis → GitHub Security tab
+  # ═══════════════════════════════════════════════════════════
+  codeql:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@main
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v4
+        with:
+          languages: javascript
+          queries: security-and-quality
+
+      - name: CodeQL Analysis
+        uses: github/codeql-action/analyze@v4
+
+  # ═══════════════════════════════════════════════════════════
+  # Semgrep — SAST + secrets + supply-chain → GitHub Security tab
+  # ═══════════════════════════════════════════════════════════
+  semgrep:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@main
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Run Semgrep
+        uses: semgrep/semgrep-action@main
+        env:
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+        with:
+          config: >-
+            auto
+            p/javascript
+            p/owasp-top-ten
+            p/secrets
+            p/supply-chain
+            p/github-actions
+
+      - name: Upload to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: semgrep.sarif
+
+  # ═══════════════════════════════════════════════════════════
+  # Trivy — dependency vulnerabilities → GitHub Security tab
+  # ═══════════════════════════════════════════════════════════
+  trivy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@main
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Run Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: sarif
+          output: trivy-results.sarif
+          severity: CRITICAL,HIGH
+
+      - name: Upload to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: trivy-results.sarif
+
+  # ═══════════════════════════════════════════════════════════
+  # Zizmor — GitHub Actions workflow security
+  # ═══════════════════════════════════════════════════════════
+  zizmor:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@main
+        with:
+          egress-policy: audit
+
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Run Zizmor
+        uses: zizmorcore/zizmor-action@main
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  # ═══════════════════════════════════════════════════════════
+  # Strix Quick — AI penetration test (PR + push)
+  # ═══════════════════════════════════════════════════════════
   strix-quick:
     if: github.event_name == 'pull_request' || github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@main
+        with:
+          egress-policy: audit
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -41,13 +172,20 @@ jobs:
           name: strix-quick-results
           path: strix_runs/
 
-  # ── Strix Deep Scan (schedule only) ──
+  # ═══════════════════════════════════════════════════════════
+  # Strix Deep — AI penetration test (schedule only)
+  # ═══════════════════════════════════════════════════════════
   strix-deep:
     if: github.event_name == 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 300
 
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@main
+        with:
+          egress-policy: audit
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -70,30 +208,3 @@ jobs:
           name: strix-deep-results-${{ github.run_id }}
           path: strix_runs/
           retention-days: 90
-
-  # ── Trivy dependency scan → GitHub Security tab ──
-  trivy:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      security-events: write
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-
-      - name: Run Trivy
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: fs
-          scan-ref: .
-          format: sarif
-          output: trivy-results.sarif
-          severity: CRITICAL,HIGH
-
-      - name: Upload to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v4
-        if: always()
-        with:
-          sarif_file: trivy-results.sarif
