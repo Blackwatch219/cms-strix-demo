@@ -3,7 +3,7 @@ name: Strix Security Scan
 on:
   pull_request:
   schedule:
-    - cron: '0 4 * * *'
+    - cron: '0 4 * * 1'
 
 jobs:
   quick-scan:
