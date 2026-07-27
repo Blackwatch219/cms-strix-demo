@@ -14,7 +14,7 @@ permissions:
 jobs:
   # ── Strix Quick Scan (PR only) ──
   strix-quick:
-    if: github.event_name == 'pull_request'
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
