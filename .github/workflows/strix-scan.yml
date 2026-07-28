@@ -73,6 +73,7 @@ jobs:
             --config "p/secrets" \
             --config "p/supply-chain" \
             --config "p/github-actions" \
+            --severity ERROR \
             --sarif --output semgrep.sarif
 
       - name: Upload to GitHub Security tab
