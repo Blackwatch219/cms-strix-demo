@@ -28,8 +28,6 @@ jobs:
           egress-policy: audit
 
       - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4
@@ -56,8 +54,6 @@ jobs:
           egress-policy: audit
 
       - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
 
       - name: Set up Python
         uses: actions/setup-python@main
@@ -101,8 +97,6 @@ jobs:
           egress-policy: audit
 
       - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
 
       - name: Run Trivy
         uses: aquasecurity/trivy-action@master
